@@ -1,2 +1,2 @@
-# l2web-map
-An interactive map for Lineage2 websites
+# L2Web-Map
+An interactive map for Lineage2 websites.
