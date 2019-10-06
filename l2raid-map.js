@@ -69,17 +69,8 @@ window.onresize = function()
 	resizeMapContent();
 };
 
-// This group will contain all markers
-let pointGroup = L.layerGroup();
-
-// Generate markers
+// Finally, generate a group of markers
 generateMarkers();
-
-// Now that layer is completed, add it to map
-map.addLayer(pointGroup);
-
-// Finally, add control to search for raid bosses by name
-map.addControl(new L.Control.Search({layer: pointGroup, zoom: map.getZoom()}));
 
 /**
  * Generates markers using raid boss data retrieved from database.
@@ -93,6 +84,9 @@ function generateMarkers()
 		{
 			if (this.responseText)
 			{
+				// This group will contain all markers
+				let pointGroup = L.layerGroup();
+
 	 			let data = JSON.parse(this.responseText);
 	 			for (let obj of data)
 	 			{
@@ -117,6 +111,12 @@ function generateMarkers()
 					// Create marker tooltip and add both to map
 					marker.bindTooltip(tooltipContent).addTo(pointGroup);
 	 			}
+
+	 			// Now that layer is completed, add it to map
+				map.addLayer(pointGroup);
+
+				// Finally, add control to search for raid bosses by name
+				map.addControl(new L.Control.Search({layer: pointGroup, zoom: map.getZoom()}));
 	 		}
 		}
 		else
