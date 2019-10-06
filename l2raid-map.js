@@ -35,15 +35,6 @@ const MAP_MAX_Y = ((TILE_Y_MAX - TILE_ZERO_COORD_Y) + 1) * TILE_SIZE;
 /** World Map Bounds */
 const BOUNDS = [[MAP_MIN_Y, MAP_MIN_X], [MAP_MAX_Y, MAP_MAX_X]];
 
-/** Example data */
-const data =
-[
-	{name: "Ember", loc_x: "184542", loc_y: "-106330", respawn_time: 1568986773547},
-	{name: "Greyclaw Kutus", loc_x: "-54464", loc_y: "146572", respawn_time: 0},
-	{name: "Unrequited Kael", loc_x: "-60428", loc_y: "188264", respawn_time: 0},
-	{name: "Hekaton Prime", loc_x: "191975", loc_y: "56959", respawn_time: 0},
-];
-
 // Marker icon for DEAD raid bosses
 const redIcon = L.icon(
 {
@@ -81,36 +72,61 @@ window.onresize = function()
 // This group will contain all markers
 let pointGroup = L.layerGroup();
 
-// Finally, generate markers
-for (let obj of data)
-{
-	/**
-	 * This is done because leaflet simple CRS uses bottom-left as pixel origin.
-	 * If we change its pixel origin, couple of minor things will get broken.
-	 */
-	let point = L.CRS.Simple.transformation.transform(L.point(obj.loc_x, obj.loc_y));
-	// y - latitude, x - longitude
-	let marker = L.marker([point.y, point.x], {title: obj.name, riseOnHover: true});
-	
-	let tooltipContent = '<div class="tooltip-content">';
-	tooltipContent += '<div>Boss Name: ' + obj.name + '</div>';
-	tooltipContent += '<div>Status: ' + (obj.respawn_time > 0 ? '<span style="color: red">DEAD</span>' : '<span style="color: green">ALIVE</span>') + '</div>';
-	if (obj.respawn_time > 0)
-	{
-		marker.setIcon(redIcon);
-		tooltipContent += '<div>Next Respawn At: ' + new Date(obj.respawn_time) + '</div>';
-	}
-	tooltipContent += '</div>';
-	
-	// Create marker tooltip and add both to map
-	marker.bindTooltip(tooltipContent).addTo(pointGroup);
-}
+// Generate markers
+generateMarkers();
 
 // Now that layer is completed, add it to map
 map.addLayer(pointGroup);
 
-// Control to search for raid bosses by name
+// Finally, add control to search for raid bosses by name
 map.addControl(new L.Control.Search({layer: pointGroup, zoom: map.getZoom()}));
+
+/**
+ * Generates markers using raid boss data retrieved from database.
+ */
+function generateMarkers()
+{
+	let xhttp = new XMLHttpRequest();
+	xhttp.onloadend = function()
+	{
+		if (this.status === 200)
+		{
+			if (this.responseText)
+			{
+	 			let data = JSON.parse(this.responseText);
+	 			for (let obj of data)
+	 			{
+	 				/**
+					 * This is done because leaflet simple CRS uses bottom-left as pixel origin.
+					 * If we change its pixel origin, couple of minor things will get broken.
+					 */
+					let point = L.CRS.Simple.transformation.transform(L.point(obj.loc_x, obj.loc_y));
+					// y - latitude, x - longitude
+					let marker = L.marker([point.y, point.x], {title: obj.name, riseOnHover: true});
+					
+					let tooltipContent = '<div class="tooltip-content">';
+					tooltipContent += '<div>Boss Name: ' + obj.name + '</div>';
+					tooltipContent += '<div>Status: ' + (obj.respawn_time > 0 ? '<span style="color: red">DEAD</span>' : '<span style="color: green">ALIVE</span>') + '</div>';
+					if (obj.respawn_time > 0)
+					{
+						marker.setIcon(redIcon);
+						tooltipContent += '<div>Next Respawn At: ' + new Date(obj.respawn_time) + '</div>';
+					}
+					tooltipContent += '</div>';
+					
+					// Create marker tooltip and add both to map
+					marker.bindTooltip(tooltipContent).addTo(pointGroup);
+	 			}
+	 		}
+		}
+		else
+		{
+			alert("Connection failed!");
+		}
+	};
+	xhttp.open("GET", "ajax.php", true);
+	xhttp.send();
+}
 
 /**
  * Handles map resize in case map is larger than overlay.
