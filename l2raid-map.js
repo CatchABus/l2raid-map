@@ -49,7 +49,15 @@ const redIcon = L.icon(
 });
 
 // Initialize map
-const map = L.map('map', {crs: L.CRS.Simple, maxBoundsViscosity: 1, zoomDelta: 0.5, zoomSnap: 0.5, attributionControl: false, markerZoomAnimation: false});
+const map = L.map('map', {
+	crs: L.CRS.Simple,
+	maxBoundsViscosity: 1,
+	zoomDelta: 0.5,
+	zoomSnap: 0.5,
+	attributionControl: false,
+	markerZoomAnimation: false
+});
+
 // Set l2 map overlay
 L.imageOverlay("maps/C4.jpg", BOUNDS).addTo(map);
 
@@ -85,26 +93,32 @@ function generateMarkers()
 			if (this.responseText)
 			{
 				// This group will contain all markers
-				let pointGroup = L.layerGroup();
+				const pointGroup = L.layerGroup();
+				const currentTimeInMillis = Date.now();
 
-	 			let data = JSON.parse(this.responseText);
+	 			const data = JSON.parse(this.responseText);
 	 			for (let obj of data)
 	 			{
+					const name = obj.name;
+					const x = obj.loc_x || 0;
+					const y = obj.loc_y || 0;
+					const remainingTime = obj.respawn_time > 0 ? obj.respawn_time - currentTimeInMillis : 0;
+
 	 				/**
 					 * This is done because leaflet simple CRS uses bottom-left as pixel origin.
 					 * If we change its pixel origin, couple of minor things will get broken.
 					 */
-					let point = L.CRS.Simple.transformation.transform(L.point(obj.loc_x, obj.loc_y));
+					const point = L.CRS.Simple.transformation.transform(L.point(x, y));
 					// y - latitude, x - longitude
-					let marker = L.marker([point.y, point.x], {title: obj.name, riseOnHover: true});
+					const marker = L.marker([point.y, point.x], {title: obj.name, riseOnHover: true});
 					
 					let tooltipContent = '<div class="tooltip-content">';
-					tooltipContent += '<div>Boss Name: ' + obj.name + '</div>';
-					tooltipContent += '<div>Status: ' + (obj.respawn_time > 0 ? '<span style="color: red">DEAD</span>' : '<span style="color: green">ALIVE</span>') + '</div>';
-					if (obj.respawn_time > 0)
+					tooltipContent += `<div>Boss Name: ${obj.name}</div>`;
+					tooltipContent += `<div>Status: ${(remainingTime > 0 ? '<span style="color: red">DEAD</span>' : '<span style="color: green">ALIVE</span>')}</div>`;
+					if (remainingTime > 0)
 					{
 						marker.setIcon(redIcon);
-						tooltipContent += '<div>Next Respawn At: ' + new Date(obj.respawn_time) + '</div>';
+						tooltipContent += `<div>Next Respawn At: ${new Date(currentTimeInMillis + remainingTime)}</div>`;
 					}
 					tooltipContent += '</div>';
 					
