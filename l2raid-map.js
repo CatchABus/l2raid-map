@@ -133,7 +133,11 @@ function generateMarkers()
 				map.addLayer(pointGroup);
 
 				// Finally, add control to search for raid bosses by name
-				map.addControl(new L.Control.Search({layer: pointGroup, zoom: map.getZoom()}));
+				map.addControl(new L.Control.Search({
+					initial: false,
+					layer: pointGroup,
+					zoom: map.getZoom()
+				}));
 	 		}
 		}
 		else
