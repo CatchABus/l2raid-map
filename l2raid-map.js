@@ -99,7 +99,7 @@ function generateMarkers()
 	 			const data = JSON.parse(this.responseText);
 	 			for (let obj of data)
 	 			{
-					const name = obj.name;
+					const title = obj.name;
 					const x = obj.loc_x || 0;
 					const y = obj.loc_y || 0;
 					const remainingTime = obj.respawn_time > 0 ? obj.respawn_time - currentTimeInMillis : 0;
@@ -110,10 +110,13 @@ function generateMarkers()
 					 */
 					const point = L.CRS.Simple.transformation.transform(L.point(x, y));
 					// y - latitude, x - longitude
-					const marker = L.marker([point.y, point.x], {title: obj.name, riseOnHover: true});
+					const marker = L.marker([point.y, point.x], {
+						title,
+						riseOnHover: true
+					});
 					
 					let tooltipContent = '<div class="tooltip-content">';
-					tooltipContent += `<div>Boss Name: ${obj.name}</div>`;
+					tooltipContent += `<div>Boss Name: ${title}</div>`;
 					tooltipContent += `<div>Status: ${(remainingTime > 0 ? '<span style="color: red">DEAD</span>' : '<span style="color: green">ALIVE</span>')}</div>`;
 					if (remainingTime > 0)
 					{
